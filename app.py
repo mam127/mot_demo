@@ -194,7 +194,7 @@ apify_api_token = get_secret("APIFY_API_TOKEN", "")
 api_bearer = get_secret("ANECDOTE_API_TOKEN", "")
 project_id = get_secret("PROJECT_ID", DEFAULT_PROJECT_ID)
 api_url = get_secret("API_URL", DEFAULT_API_URL)
-max_workers = int(get_secret("MAX_WORKERS", "4") or 4)
+max_workers = int(get_secret("MAX_WORKERS", "50") or 50)
 
 api_headers = {"Authorization": f"Bearer {api_bearer}"} if api_bearer else {}
 
