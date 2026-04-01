@@ -502,9 +502,47 @@ def send_to_api(payload: Dict[str, Any], api_url: str, api_headers: Dict[str, st
         return False, None, str(e)
 
 
+def normalize_filter_list(value):
+    if value is None:
+        return None
+
+    if isinstance(value, float) and pd.isna(value):
+        return None
+
+    if not isinstance(value, list):
+        if isinstance(value, (str, int, float, bool)):
+            return [value]
+        return [str(value)]
+
+    cleaned = []
+    for item in value:
+        if item is None:
+            continue
+
+        if isinstance(item, (str, int, float, bool)):
+            cleaned.append(item)
+            continue
+
+        if isinstance(item, dict):
+            for key in ["name", "hashtagName", "tagName", "title", "text", "keyword", "uniqueId"]:
+                if key in item and item[key] not in [None, ""]:
+                    cleaned.append(str(item[key]))
+                    break
+            continue
+
+        cleaned.append(str(item))
+
+    return cleaned or None
+    
 
 def clean_data(df: pd.DataFrame) -> pd.DataFrame:
     df = df.copy()
+    if "hashtags" in df.columns:
+        df["hashtags"] = df["hashtags"].apply(normalize_filter_list)
+
+    if "mentions" in df.columns:
+        df["mentions"] = df["mentions"].apply(normalize_filter_list)
+    
     df["message"] = df.apply(create_message, axis=1)
     df["original_message"] = df["message"]
 
