@@ -189,31 +189,12 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-with st.sidebar:
-    st.header("Configuration")
-
-    gemini_api_key = st.text_input(
-        "GEMINI_API_KEY",
-        value=get_secret("GEMINI_API_KEY", ""),
-        type="password",
-    )
-    apify_api_token = st.text_input(
-        "APIFY_API_TOKEN",
-        value=get_secret("APIFY_API_TOKEN", ""),
-        type="password",
-    )
-    api_bearer = st.text_input(
-        "ANECDOTE_API_TOKEN",
-        value=get_secret("ANECDOTE_API_TOKEN", ""),
-        type="password",
-    )
-
-    project_id = st.text_input("Project ID", value=get_secret("PROJECT_ID", DEFAULT_PROJECT_ID))
-    api_url = st.text_input("API URL", value=get_secret("API_URL", DEFAULT_API_URL))
-    max_workers = st.slider("Parallel workers", min_value=1, max_value=12, value=4)
-
-    st.markdown("---")
-    st.caption("You can keep credentials in `.streamlit/secrets.toml` or enter them here.")
+gemini_api_key = get_secret("GEMINI_API_KEY", "")
+apify_api_token = get_secret("APIFY_API_TOKEN", "")
+api_bearer = get_secret("ANECDOTE_API_TOKEN", "")
+project_id = get_secret("PROJECT_ID", DEFAULT_PROJECT_ID)
+api_url = get_secret("API_URL", DEFAULT_API_URL)
+max_workers = int(get_secret("MAX_WORKERS", "4") or 4)
 
 api_headers = {"Authorization": f"Bearer {api_bearer}"} if api_bearer else {}
 
@@ -224,7 +205,10 @@ if not apify_api_token:
     missing.append("APIFY_API_TOKEN")
 
 if missing:
-    st.warning("Missing required configuration: " + ", ".join(missing))
+    st.error(
+        "App configuration is incomplete. Missing required secrets: " + ", ".join(missing)
+    )
+    st.stop()
 
 post_tab, search_tab = st.tabs(["Analysis by Post", "Analysis by Search"])
 
@@ -245,7 +229,7 @@ with post_tab:
         if not post_urls:
             st.error("Please add at least one TikTok post URL.")
         elif missing:
-            st.error("Please fill the missing configuration in the sidebar first.")
+            st.error("The app is missing required deployment secrets.")
         else:
             with st.spinner("Fetching posts, downloading videos, analyzing content, and preparing payload..."):
                 raw_df = load_analyze_tiktok_video(
@@ -291,7 +275,7 @@ with search_tab:
         if not search_queries:
             st.error("Please add at least one search query.")
         elif missing:
-            st.error("Please fill the missing configuration in the sidebar first.")
+            st.error("The app is missing required deployment secrets.")
         else:
             with st.spinner("Searching TikTok, downloading videos, analyzing content, and preparing payload..."):
                 raw_df = load_analyze_tiktok_video(
