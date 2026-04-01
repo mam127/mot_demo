@@ -548,7 +548,6 @@ def clean_data(df: pd.DataFrame) -> pd.DataFrame:
             "user_createTime",
             "user_originalAvatarUrl",
         ],
-        axis=1,
         errors="ignore",
     )
 
