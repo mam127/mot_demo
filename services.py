@@ -641,7 +641,7 @@ def clean_data(df: pd.DataFrame) -> pd.DataFrame:
        'TikTok Videos: user video__filter', 'TikTok Videos: user digg__filter',
        'TikTok Videos: video duration__filter', 'source']
 
-    cols_to_drop = [c for in df.columns if c not in final_cols]
+    cols_to_drop = [c for c in df.columns if c not in final_cols]
     df = df.drop(cols_to_drop, axis=1, errors='ignore')
     
     return df
