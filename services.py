@@ -17,11 +17,11 @@ from pydantic import BaseModel, Field
 
 
 DATE_RANGE_MAP = {
-    "Past 24 hours": 1,
-    "Past week": 2,
-    "Past month": 3,
-    "Last 3 months": 4,
-    "Last 6 months": 5,
+    "Past 24 hours": "1",
+    "Past week": "2",
+    "Past month": "3",
+    "Last 3 months": "4",
+    "Last 6 months": "5",
 }
 
 
