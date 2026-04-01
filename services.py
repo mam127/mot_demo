@@ -88,10 +88,10 @@ def get_tiktok_video(
 
     if postURLs:
         run_input = {
-            "commentsPerPost": 1000000000,
+            "commentsPerPost": 100,
             "excludePinnedPosts": False,
             "maxProfilesPerQuery": 1000,
-            "maxRepliesPerComment": 1000000000,
+            "maxRepliesPerComment": 10,
             "postURLs": postURLs,
             "proxyCountryCode": "None",
             "scrapeRelatedVideos": False,
