@@ -267,7 +267,7 @@ with search_tab:
     with search_col1:
         date_range = st.selectbox("Date Range", options=list(DATE_RANGE_MAP.keys()), index=0)
     with search_col2:
-        results_per_page = st.number_input("Results Per Page", min_value=1, max_value=100, value=10, step=1)
+        results_per_page = st.number_input("Results Per Page", min_value=1, max_value=10, value=1, step=1)
 
     if st.button("Run search analysis", use_container_width=True):
         search_queries = parse_lines(search_queries_text)
