@@ -585,6 +585,7 @@ def clean_data(df: pd.DataFrame) -> pd.DataFrame:
             "user_ttSeller",
             "user_createTime",
             "user_originalAvatarUrl",
+            "isMuted"
         ],
         errors="ignore",
     )
@@ -620,6 +621,29 @@ def clean_data(df: pd.DataFrame) -> pd.DataFrame:
 
     df["ds"] = df["ds"].apply(format_iso_zulu)
     df["source"] = "Tiktok"
+
+    final_cols = ['ticket_id', 'TikTok Videos: caption__attribute',
+       'TikTok Videos: caption language__filter', 'ds',
+       'TikTok Videos: location__filter', 'TikTok Videos: is ad__filter',
+       'custom_url', 'TikTok Videos: likes count__filter',
+       'TikTok Videos: shares count__filter',
+       'TikTok Videos: views count__filter',
+       'TikTok Videos: saves count__filter',
+       'TikTok Videos: comments count__filter',
+       'TikTok Videos: reposts count__filter',
+       'TikTok Videos: mentions__filter', 'TikTok Videos: hashtags__filter',
+       'TikTok Videos: is pinned__filter',
+       'TikTok Videos: is sponsored__filter', 'message', 'original_message',
+       'user_id', 'user_name', 'TikTok Videos: user private account__filter',
+       'TikTok Videos: user following__filter',
+       'TikTok Videos: user friends__filter',
+       'TikTok Videos: user fans__filter', 'TikTok Videos: user heart__filter',
+       'TikTok Videos: user video__filter', 'TikTok Videos: user digg__filter',
+       'TikTok Videos: video duration__filter', 'source']
+
+    cols_to_drop = [c for in df.columns if c not in final_cols]
+    df = df.drop(cols_to_drop, axis=1, errors='ignore')
+    
     return df
 
 
