@@ -183,7 +183,7 @@ st.title("TikTok Analysis App")
 st.markdown(
     """
     <div class="app-banner">
-        Analyze TikTok videos either by direct post URL or by search query, then transform the output into the ingestion payload.
+        Analyze TikTok videos either by direct post URL or by search query.
     </div>
     """,
     unsafe_allow_html=True,
