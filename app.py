@@ -88,26 +88,22 @@ st.markdown(
 )
 
 
-@st.cache_data(show_spinner=False)
 def dataframe_to_csv(df: pd.DataFrame) -> bytes:
     return df.to_csv(index=False).encode("utf-8")
 
 
-@st.cache_data(show_spinner=False)
 def dict_to_json_bytes(payload: dict) -> bytes:
     return json.dumps(payload, ensure_ascii=False, indent=2).encode("utf-8")
-
 
 
 def get_secret(name: str, default: Optional[str] = None) -> Optional[str]:
     try:
         value = st.secrets.get(name)
-        if value:
+        if value is not None and value != "":
             return value
     except Exception:
         pass
     return default
-
 
 
 def render_results(state_key: str, api_url: str, api_headers: dict, project_id: str):
@@ -123,12 +119,21 @@ def render_results(state_key: str, api_url: str, api_headers: dict, project_id: 
 
     metric_cols = st.columns(4)
     metric_cols[0].metric("Videos", len(raw_df))
-    metric_cols[1].metric("Total Views", int(pd.to_numeric(raw_df.get("playCount"), errors="coerce").fillna(0).sum()))
-    metric_cols[2].metric("Total Likes", int(pd.to_numeric(raw_df.get("diggCount"), errors="coerce").fillna(0).sum()))
-    metric_cols[3].metric("Total Comments", int(pd.to_numeric(raw_df.get("commentCount"), errors="coerce").fillna(0).sum()))
+    metric_cols[1].metric(
+        "Total Views",
+        int(pd.to_numeric(raw_df.get("playCount"), errors="coerce").fillna(0).sum()),
+    )
+    metric_cols[2].metric(
+        "Total Likes",
+        int(pd.to_numeric(raw_df.get("diggCount"), errors="coerce").fillna(0).sum()),
+    )
+    metric_cols[3].metric(
+        "Total Comments",
+        int(pd.to_numeric(raw_df.get("commentCount"), errors="coerce").fillna(0).sum()),
+    )
 
     st.subheader("Processed Data")
-    st.dataframe(cleaned_df, use_container_width=True)
+    st.dataframe(cleaned_df, width="stretch")
 
     with st.expander("Preview payload JSON", expanded=False):
         st.json(payload)
@@ -149,28 +154,45 @@ def render_results(state_key: str, api_url: str, api_headers: dict, project_id: 
             ]
             if col in raw_df.columns
         ]
-        st.dataframe(raw_df[preview_columns], use_container_width=True)
+
+        if preview_columns:
+            st.dataframe(raw_df[preview_columns], width="stretch")
+        else:
+            st.info("No raw preview columns available.")
+
+    csv_bytes = dataframe_to_csv(cleaned_df)
+    payload_bytes = dict_to_json_bytes(payload)
 
     download_cols = st.columns(2)
     download_cols[0].download_button(
         "Download processed CSV",
-        data=dataframe_to_csv(cleaned_df),
-        file_name="tiktok_processed_data.csv",
+        data=csv_bytes,
+        file_name=f"{state_key}_processed_data.csv",
         mime="text/csv",
-        use_container_width=True,
+        key=f"{state_key}_download_processed_csv",
+        width="stretch",
     )
     download_cols[1].download_button(
         "Download payload JSON",
-        data=dict_to_json_bytes(payload),
-        file_name="tiktok_payload.json",
+        data=payload_bytes,
+        file_name=f"{state_key}_payload.json",
         mime="application/json",
-        use_container_width=True,
+        key=f"{state_key}_download_payload_json",
+        width="stretch",
     )
 
     st.subheader("Send to API")
     st.caption(f"Project ID: {project_id}")
-    if st.button(f"Send latest result to API ({state_key})", use_container_width=True):
-        ok, status_code, body = send_to_api(payload, api_url=api_url, api_headers=api_headers)
+    if st.button(
+        f"Send latest result to API ({state_key})",
+        key=f"{state_key}_send_to_api",
+        width="stretch",
+    ):
+        ok, status_code, body = send_to_api(
+            payload,
+            api_url=api_url,
+            api_headers=api_headers,
+        )
         if ok:
             st.success(f"Sent successfully. Status code: {status_code}")
             st.json(body)
@@ -223,7 +245,12 @@ with post_tab:
         key="post_urls_text",
     )
 
-    if st.button("Run post analysis", type="primary", use_container_width=True):
+    if st.button(
+        "Run post analysis",
+        type="primary",
+        key="run_post_analysis",
+        width="stretch",
+    ):
         post_urls = parse_lines(post_urls_text)
 
         if not post_urls:
@@ -231,7 +258,9 @@ with post_tab:
         elif missing:
             st.error("The app is missing required deployment secrets.")
         else:
-            with st.spinner("Fetching posts, downloading videos, analyzing content, and preparing payload..."):
+            with st.spinner(
+                "Fetching posts, downloading videos, analyzing content, and preparing payload..."
+            ):
                 raw_df = load_analyze_tiktok_video(
                     gemini_api_key=gemini_api_key,
                     apify_api_token=apify_api_token,
@@ -250,7 +279,12 @@ with post_tab:
                         "payload": payload,
                     }
 
-    render_results("post_result", api_url=api_url, api_headers=api_headers, project_id=project_id)
+    render_results(
+        "post_result",
+        api_url=api_url,
+        api_headers=api_headers,
+        project_id=project_id,
+    )
 
 with search_tab:
     st.subheader("Analysis by Search")
@@ -265,11 +299,27 @@ with search_tab:
 
     search_col1, search_col2 = st.columns(2)
     with search_col1:
-        date_range = st.selectbox("Date Range", options=list(DATE_RANGE_MAP.keys()), index=0)
+        date_range = st.selectbox(
+            "Date Range",
+            options=list(DATE_RANGE_MAP.keys()),
+            index=0,
+            key="search_date_range",
+        )
     with search_col2:
-        results_per_page = st.number_input("Results Per Page", min_value=1, max_value=10, value=1, step=1)
+        results_per_page = st.number_input(
+            "Results Per Page",
+            min_value=1,
+            max_value=10,
+            value=1,
+            step=1,
+            key="search_results_per_page",
+        )
 
-    if st.button("Run search analysis", use_container_width=True):
+    if st.button(
+        "Run search analysis",
+        key="run_search_analysis",
+        width="stretch",
+    ):
         search_queries = parse_lines(search_queries_text)
 
         if not search_queries:
@@ -277,7 +327,9 @@ with search_tab:
         elif missing:
             st.error("The app is missing required deployment secrets.")
         else:
-            with st.spinner("Searching TikTok, downloading videos, analyzing content, and preparing payload..."):
+            with st.spinner(
+                "Searching TikTok, downloading videos, analyzing content, and preparing payload..."
+            ):
                 raw_df = load_analyze_tiktok_video(
                     gemini_api_key=gemini_api_key,
                     apify_api_token=apify_api_token,
@@ -298,4 +350,9 @@ with search_tab:
                         "payload": payload,
                     }
 
-    render_results("search_result", api_url=api_url, api_headers=api_headers, project_id=project_id)
+    render_results(
+        "search_result",
+        api_url=api_url,
+        api_headers=api_headers,
+        project_id=project_id,
+    )
