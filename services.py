@@ -45,7 +45,7 @@ class VideoAnalysis(BaseModel):
 # Core helpers
 # -----------------------------
 
-def run_parallel_calls(inputs, func, max_workers: int = 8):
+def run_parallel_calls(inputs, func, max_workers: int = 10):
     results = [None] * len(inputs)
 
     if not inputs:
